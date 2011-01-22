@@ -14,10 +14,7 @@
 <> a cpack:Library ;
 	cpack:packageName "find_resource" ;
 	dcterms:title "Library to find RDF resources by a textual query" ;
-	cpack:author [ a foaf:Person ;
-		       foaf:name "@FOAFNAME@" ;
-		       foaf:mbox "@FOAFMBOX@" ;
-		     ] ;
+	cpack:author <http://www.few.vu.nl/~michielh/me>  ;
 	cpack:primaryRepository
 	    [ a cpack:GitRepository ;
 	      cpack:gitURL <git://semanticweb.cs.vu.nl/home/hildebra/git/ClioPatria/find_resource.git>
