@@ -58,6 +58,7 @@ remove_same_uri(_, L, L).
 uri_with_label_in(LabelPairs, Attributes, hit(URI, Distance, P, Label)) :-
 	member(D-Label, LabelPairs),
 	rdf(URI, P, literal(Label)),
+	\+ rdf(URI, rdf:type, 'http://semanticweb.cs.vu.nl/prestoprime/Tag'), % hack
 	(   member(P-F, Attributes)
 	->  true
 	;   member(AS-F, Attributes),
