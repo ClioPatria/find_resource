@@ -1,5 +1,6 @@
 :- module(find_resource,
-	  [ find_resource_by_name/3   % +Name, -Hits, +Options
+	  [ find_literal/3,   % +Text, +MatchType, -Literal
+	    find_resource_by_name/3   % +Name, -Hits, +Options
 	  ]).
 
 :- use_module(library(semweb/rdf_db)).
