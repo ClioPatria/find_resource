@@ -12,7 +12,7 @@
 :- rdf_find_literals(zzz,_).
 
 
-%%	find_resource_by_name(+Name:atom, +Attributes:list(P-D),
+%%	find_resource_by_name(+Name:atom,
 %%             -Hit:hit(Distance:nonneg,Hit:atom,Prop:atom,Label:atom),
 %%             +Options)  is nondet.
 %
