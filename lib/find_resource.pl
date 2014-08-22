@@ -6,6 +6,7 @@
 :- use_module(library(semweb/rdf_db)).
 :- use_module(library(semweb/rdfs)).
 :- use_module(library(semweb/rdf_litindex)).
+:- use_module(library(semweb/rdf_label)).
 
 % force indexing
 :- rdf_find_literals(zzz,_).
@@ -18,9 +19,17 @@
 %	Find a resource based on a Name.
 %
 %       Options
+%       * Tokenize
+%       Boolean, defaults to true.
+%
 %       * Match
-%	one of case, stem, prefix. Method to match the Name
-%	against the literal index. Default is case
+%	When Tokenize == true, Match should be one of case, stem,
+%	prefix. Method to match the Name against the literal index.
+%	Default is case. See rdf_find_literals/2 for details.
+%
+%	When Tokenize == false, Match should be one of the
+%	literal search methods supported by rdf/3, including prefix,
+%	plain, and exact, but _not_ stem or case.
 %
 %	* Distance
 %	Boolean, compute literal distance if true. Default is true. The
@@ -38,10 +47,13 @@ find_resource_by_name(Name, Hits, Options) :-
 	option(match(Match), Options, case),
 	option(distance(Distance), Options, true),
 	option(attributes(Attributes), Options, [P-0]),
-	catch(findall(D-Label, find_literal_distance(Distance, Name, Match, Label, D), Pairs),
+	option(tokenize(Tokenize), Options, true),
+	catch(findall(D-Label,
+		      find_literal_distance(Distance, Tokenize, Name, Match, Label, D),
+		      Pairs),
 	      no_stem(_),
 	      fail),
- 	findall(Hit, uri_with_label_in(Pairs, Attributes, Hit), Hits1),
+	findall(Hit, uri_with_label_in(Pairs, Attributes, Hit), Hits1),
 	sort(Hits1, Hits2),			% sort by URI
 	remove_dup_uris(Hits2, Hits3),	        % take lowest on URI
 	sort(Hits3, Hits).			% sort by distance
@@ -69,15 +81,15 @@ uri_with_label_in(LabelPairs, Attributes, hit(URI, Distance, P, Label)) :-
 
 
 		 /*******************************
-		 *	  find literals  	*
+		 *	  find literals		*
 		 *******************************/
 
-find_literal_distance(true, Tokens, MatchType, Label, Distance) :-
+find_literal_distance(true, Tokenize, Literal, MatchType, Label, Distance) :-
 	!,
-	find_literal(Tokens, MatchType, Label),
-	literal_distance(Tokens, Label, Distance).
-find_literal_distance(_, Tokens, MatchType, Label, 0) :-
-	find_literal(Tokens, MatchType, Label).
+	find_literal(Literal, Tokenize, MatchType, Label),
+	literal_distance(Literal, Label, Distance).
+find_literal_distance(_, Tokenize, Literal, MatchType, Label, 0) :-
+	find_literal(Literal, Tokenize, MatchType, Label).
 
 %%	find_literal(+TextOrTokens, +MatchType, -Literal)
 %
@@ -87,12 +99,20 @@ find_literal_distance(_, Tokens, MatchType, Label, 0) :-
 %	rdf_tokenize_literal/2.
 %	MatchType is one of case, stem or prefix.
 
-
 find_literal(Text, MatchType, Literal) :-
+	find_literal(Text, true, MatchType, Literal).
+
+find_literal(Text, true, MatchType, Literal) :-
 	tokens(Text, Tokens),
 	list_to_and(Tokens, MatchType, And),
 	rdf_find_literals(And, Literals),
 	member(Literal, Literals).
+
+find_literal(Text, false, MatchType, Result) :-
+	M =.. [ MatchType, Text ],
+	L =.. [ literal, M, Literal ],
+	rdf(_,_,L),
+	literal_text(Literal, Result).
 
 
 %%	list_to_and(+TextOrTokens, +MatchType, -AndTerm)
